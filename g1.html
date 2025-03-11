@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>График работников</title>
+  <style>
+    /* Стили для таблицы и ячеек */
+    td:nth-child(3) { background-color: rgba(255, 182, 193, 0.1); transition: background-color 0.3s ease; }
+    td:nth-child(4) { background-color: rgba(173, 216, 230, 0.1); transition: background-color 0.3s ease; }
+    td:nth-child(5) { background-color: rgba(152, 251, 152, 0.1); transition: background-color 0.3s ease; }
+    td:nth-child(6) { background-color: rgba(255, 239, 184, 0.2); transition: background-color 0.3s ease; }
+    td:nth-child(7) { background-color: rgba(221, 160, 221, 0.1); transition: background-color 0.3s ease; }
+    td:nth-child(8) { background-color: rgba(240, 230, 140, 0.1); transition: background-color 0.3s ease; }
+    td:nth-child(9) { background-color: rgba(176, 224, 230, 0.1); transition: background-color 0.3s ease; }
+    td:nth-child(10) { background-color: rgba(255, 218, 185, 0.1); transition: background-color 0.3s ease; }
+
+    /* Стили для страницы */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      transition: background-color 0.3s ease;
+    }
+    .container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+    .instruction-block {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 90%;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+      margin-bottom: 20px;
+      overflow: auto;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s forwards;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      opacity: 0;
+      transform: scale(0.95);
+      animation: fadeInScale 0.5s forwards;
+      overflow-x: auto;
+      display: block;
+      transition: all 0.3s ease;
+    }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes fadeOutScale {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.95); }
+    }
+    th, td {
+      padding: 15.3px;
+      text-align: center;
+      border: 1px solid #ddd;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    /* Стили для второго столбца (дни недели) */
+    td:nth-child(2),
+    th:nth-child(2) {
+      width: 60px;
+      min-width: 60px;
+      max-width: 60px;
+    }
+    /* Унифицированный стиль для кнопок */
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+      transform: scale(1.05);
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+      transition: background-color 0.3s ease;
+    }
+    /* Стили для выделенных ячеек */
+    td.selected {
+      background-color: rgba(0, 123, 255, 0.3) !important;
+      transition: background-color 0.3s ease;
+    }
+    /* Стили для поля выбора времени (всегда видно) */
+    #timeSelector {
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #fff;
+      margin-top: 15px;
+    }
+    /* Стили для блока с всегда видимыми элементами */
+    .always-visible {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    /* Стили для спойлера */
+    #spoilerContainer {
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      max-height: 0;
+      opacity: 0;
+    }
+    #spoilerContainer.open {
+      max-height: 500px; /* Достаточно для всех элементов */
+      opacity: 1;
+    }
+    /* Стили для кнопки-стрелки спойлера */
+    #toggleSpoilerButton {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: #4caf50;
+      transition: transform 0.3s ease;
+    }
+    #toggleSpoilerButton.rotated {
+      transform: rotate(180deg);
+    }
+    /* Стили для элементов управления в спойлере */
+    #templateControls {
+      margin-top: 15px;
+    }
+    #templateControls .control-group {
+      margin-bottom: 10px;
+    }
+    #templateControls input[type="text"],
+    #templateControls select {
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #templateControls button {
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      width: 100%;
+    }
+    #templateControls button:hover {
+      background-color: #45a049;
+    }
+    /* Новый блок управления столбцами внутри спойлера */
+    #columnControls {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    /* Делаем кнопки управления столбцами маленькими */
+#columnControls button {
+  font-size: 11px;
+  padding: 2px 6px;
+ width: 100px;
+ height: 30px;
+ position: relative;
+  background-color: #007bff; /* синий цвет */
+  color: white;
+  border-radius: 10;
+ margin-top: -5px; /* поднимет кнопки немного вверх */
+}
+
+
+    /* Кнопки навигации по неделям */
+    .nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-3%);
+      background: rgba(0, 0, 0, 0.3);
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+      z-index: 10;
+    }
+    .nav-button:hover {
+      background: rgba(0, 0, 0, 0.6);
+    }
+    .prev-week { left: 10px; }
+    .next-week { right: 10px; }
+    @media (max-width: 768px) {
+      body { font-size: 14px; }
+      table { font-size: 12px; }
+      th, td { padding: 8px; }
+      button { padding: 8px 12px; }
+      #weekSelector { width: 100%; }
+      .nav-button { font-size: 18px; width: 30px; height: 30px; }
+      .prev-week { left: -30px; }
+      .next-week { right: -30px; }
+    }
+    @media (max-width: 480px) {
+      table { font-size: 10px; }
+      th, td { padding: 6px; }
+      button { width: 100%; }
+      .container { padding: 10px; }
+      .instruction-block { max-width: 100%; }
+    }
+
+/* Изначально столбцы не видны */
+.hidden-column {
+  opacity: 0;
+  visibility: hidden; /* Скрываем столбец */
+  transition: opacity 0.5s ease, visibility 0s linear 0.5s; /* Плавное скрытие */
+}
+
+/* Когда столбец видим, он становится полностью непрозрачным */
+.visible-column {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease, visibility 0s linear 0s; /* Плавное появление */
+}
+
+/* Чтобы столбцы могли изменять размеры плавно */
+th, td {
+  transition: all 0.5s ease;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="nav-button prev-week" onclick="goToPreviousWeek()">&#10094;</button>
+    <div class="instruction-block">
+      <h2>График работников</h2>
+      <label for="weekSelector">Выберите неделю: </label>
+      <input type="week" id="weekSelector" onchange="updateWeek()">
+      
+      <!-- Таблица скрыта до выбора недели -->
+      <table id="scheduleTable" style="display: none;">
+        <thead>
+          <tr id="headerRow">
+            <!-- Заголовки генерируются динамически -->
+          </tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+      
+      <!-- Блок с всегда видимыми элементами -->
+      <div class="always-visible">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button onclick="saveToExcel()">Сохранить в Excel</button>
+          <button id="applyButton" onclick="applyToSelected()">Применить ко всем выделенным</button>
+          <select id="timeSelector">
+            <option value="12:00 - 21:00">12:00 - 21:00</option>
+            <option value="9:30 - 21:30">9:30 - 21:30</option>
+            <option value="16:00 - 3:30">16:00 - 3:30</option>
+            <option value="9:30 - 18:30">9:30 - 18:30</option>
+            <option value="13:00 - 01:00">13:00 - 01:00</option>
+            <option value="18:30 - 03:30">18:30 - 03:30</option>
+            <option value="9:30 - 03:30">9:30 - 03:30</option>
+            <option value="Особый">Особый</option>
+            <option value="Выходной">Выходной</option>
+            <option value="—">—</option>
+          </select>
+        </div>
+        <!-- Кнопка-стрелка для спойлера -->
+        <button id="toggleSpoilerButton">&#9660;</button>
+      </div>
+      
+      <!-- Спрятанный спойлер с дополнительными элементами (включая управление столбцами) -->
+      <div id="spoilerContainer">
+        <div id="templateControls">
+          <div class="control-group">
+            <input type="text" id="templateNameInput" placeholder="Введите название шаблона">
+          </div>
+          <div class="control-group">
+            <button id="saveTemplateButton">Сохранить шаблон</button>
+          </div>
+          <div class="control-group">
+            <select id="templateSelector"></select>
+          </div>
+          <div class="control-group">
+            <button id="applyTemplateButton">Применить шаблон</button>
+          </div>
+          <div class="control-group">
+            <button id="deleteTemplateButton">Удалить шаблон</button>
+          </div>
+          <div class="control-group">
+            <button id="clearWeekButton">Очистить поля</button>
+          </div>
+          <!-- Блок управления столбцами -->
+          <div id="columnControls"></div>
+        </div>
+      </div>
+    </div>
+    <button class="nav-button next-week" onclick="goToNextWeek()">&#10095;</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <script>
+    // Массив с именами сотрудников
+    let workers = ["Виолетта", "Саша", "Даша", "Толик", "Кирилл", "Лиза", "Ирина", "Виктория"];
+    // Массив для хранения состояния скрытых столбцов (индекс соответствует сотруднику)
+    let hiddenColumns = new Array(workers.length).fill(false);
+    let selectedCells = new Set(); // Храним выделенные ячейки
+
+    /* =========================
+       Функция формирования заголовков таблицы (без кнопок скрытия)
+       ========================= */
+    function initHeaders() {
+      const headerRow = document.getElementById('headerRow');
+      headerRow.innerHTML = "";
+      // Фиксированные столбцы "Дата" и "День недели"
+      const dateTh = document.createElement('th');
+      dateTh.textContent = "Дата";
+      headerRow.appendChild(dateTh);
+      const dayTh = document.createElement('th');
+      dayTh.textContent = "День недели";
+      headerRow.appendChild(dayTh);
+      
+      // Для каждого сотрудника создаём свой th с редактируемым именем
+      workers.forEach((worker, index) => {
+        const th = document.createElement('th');
+        th.contentEditable = true;
+        th.textContent = worker;
+        th.onblur = () => updateWorkerName(index, th.textContent);
+        headerRow.appendChild(th);
+      });
+      updateHiddenColumns();
+    }
+
+    /* =========================
+       Функция формирования блока управления столбцами (в спойлере)
+       ========================= */
+    function initColumnControls() {
+      const controlsDiv = document.getElementById("columnControls");
+      controlsDiv.innerHTML = "";
+      const title = document.createElement("div");
+      title.style.fontWeight = "bold";
+      title.style.marginBottom = "8px";
+      title.textContent = "Управление столбцами:";
+      controlsDiv.appendChild(title);
+      workers.forEach((worker, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = hiddenColumns[index] ? `Показать ${worker}` : `Скрыть ${worker}`;
+        btn.addEventListener("click", () => {
+          toggleColumn(index);
+          btn.textContent = hiddenColumns[index] ? `Показать ${worker}` : `Скрыть ${worker}`;
+        });
+        controlsDiv.appendChild(btn);
+      });
+    }
+
+    // Функция скрытия/показа столбца для сотрудника по индексу
+    function toggleColumn(workerIndex) {
+      hiddenColumns[workerIndex] = !hiddenColumns[workerIndex];
+      updateHiddenColumns();
+    }
+
+    // Применение сохранённого состояния скрытых столбцов к таблице
+    function updateHiddenColumns(){
+      const table = document.getElementById("scheduleTable");
+      hiddenColumns.forEach((hidden, i) => {
+        const colIndex = i + 3; // 1 – "Дата", 2 – "День недели"
+        const elements = table.querySelectorAll(`tr > :nth-child(${colIndex})`);
+        elements.forEach(el => {
+          el.style.display = hidden ? "none" : "";
+        });
+      });
+    }
+
+
+    // Обновление имени сотрудника в массиве и заголовке
+    function updateWorkerName(index, newName) {
+      workers[index] = newName.trim();
+    }
+
+    /* =========================
+       Функции для работы с расписанием
+       ========================= */
+    function updateWeek() {
+      const selectedWeek = document.getElementById("weekSelector").value;
+      if (!selectedWeek) return;
+      document.getElementById("scheduleTable").style.display = "block";
+      
+      const table = document.getElementById("scheduleTable");
+      table.style.animation = "fadeOutScale 0.3s forwards";
+      setTimeout(() => {
+        initHeaders();
+        initColumnControls();
+        const [year, week] = selectedWeek.split('-W');
+        const daysOfWeekShort = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        const scheduleBody = document.getElementById("scheduleBody");
+        scheduleBody.innerHTML = "";
+        const savedSchedule = JSON.parse(localStorage.getItem("schedule")) || {};
+        const weekKey = `week-${selectedWeek}`;
+        const savedColors = JSON.parse(localStorage.getItem("colors")) || {};
+        for (let i = 0; i < 7; i++) {
+          let currentDate = new Date(year, 0, 1 + (week - 1) * 7 + i - 1);
+          let dayOfWeekFormatted = daysOfWeekShort[i];
+          let formattedDate = currentDate.toISOString().split('T')[0];
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${formattedDate}</td><td>${dayOfWeekFormatted}</td>`;
+          workers.forEach(worker => {
+            let savedValue = savedSchedule[weekKey]?.[formattedDate]?.[worker] || "—";
+            let savedColor = savedColors[formattedDate]?.[worker] || "";
+            row.innerHTML += `<td style="background-color: ${savedColor}" onclick="toggleSelect(this)">
+                                <select onchange="updateSchedule('${weekKey}', '${formattedDate}', '${worker}', this.value, this)">
+                                  <option value="12:00 - 21:00" ${savedValue === "12:00 - 21:00" ? "selected" : ""}>12:00 - 21:00</option>
+                                  <option value="9:30 - 21:30" ${savedValue === "9:00 - 21:30" ? "selected" : ""}>9:30 - 21:30</option>
+                                  <option value="12:00 - 00:00" ${savedValue === "12:00 - 00:00" ? "selected" : ""}>12:00 - 00:00</option>
+                                  <option value="9:30 - 18:30" ${savedValue === "9:30 - 18:30" ? "selected" : ""}>9:30 - 18:30</option>
+                                  <option value="18:30 - 03:30" ${savedValue === "18:30 - 03:30" ? "selected" : ""}>18:30 - 03:30</option>
+                                  <option value="16:00 - 03:30" ${savedValue === "16:00 - 03:30" ? "selected" : ""}>16:00 - 03:30</option>
+                                  <option value="09:30 - 3:30" ${savedValue === "09:30 - 23:30" ? "selected" : ""}>09:30 - 3:30</option>
+                                  <option value="Выходной" ${savedValue === "Выходной" ? "selected" : ""}>Выходной</option>
+                                  <option value="Особый" ${savedValue === "Особый" ? "selected" : ""}>Особый</option>
+                                  <option value="—" ${savedValue === "—" ? "selected" : ""}>—</option>
+                                </select>
+                              </td>`;
+          });
+          scheduleBody.appendChild(row);
+        }
+        table.style.animation = "fadeInScale 0.5s forwards";
+        updateHiddenColumns();
+      }, 300);
+    }
+
+    function toggleSelect(cell) {
+      if (cell.classList.contains("selected")) {
+        cell.classList.remove("selected");
+        selectedCells.delete(cell);
+      } else {
+        cell.classList.add("selected");
+        selectedCells.add(cell);
+      }
+    }
+
+    function applyToSelected() {
+      const selectedTime = document.getElementById("timeSelector").value;
+      selectedCells.forEach(cell => {
+        const select = cell.querySelector("select");
+        if (select) {
+          select.value = selectedTime;
+          select.dispatchEvent(new Event('change'));
+        }
+      });
+      selectedCells.forEach(cell => cell.classList.remove("selected"));
+      selectedCells.clear();
+    }
+
+    function updateSchedule(weekKey, date, worker, value, selectElement) {
+      const schedule = JSON.parse(localStorage.getItem("schedule")) || {};
+      if (!schedule[weekKey]) schedule[weekKey] = {};
+      if (!schedule[weekKey][date]) schedule[weekKey][date] = {};
+      schedule[weekKey][date][worker] = value;
+      localStorage.setItem("schedule", JSON.stringify(schedule));
+      const cell = selectElement.parentElement;
+      let color = "";
+      if (value === "Выходной") {
+        color = "rgba(255, 0, 0, 0.3)";
+      } else if (value === "12:00 - 21:00") {
+        color = "#e6f4ea";
+      } else if (value === "9:30 - 21:30") {
+        color = "#e6f4ea";
+      } else if (value === "16:00 - 3:30") {
+        color = "#e6f4ea";
+      } else if (value === "12:00 - 21:00") {
+        color = "#e6f4ea";
+      } else if (value === "9:30 - 18:30") {
+        color = "#c3e6cb";
+      } else if (value === "13:00 - 01:00") {
+        color = "#a2d9f7";
+      } else if (value === "18:30 - 03:30") {
+        color = "#6c8ebf";
+      } else if (value === "—") {
+        color = "rgba(255, 255, 255, 0.3)";
+      }
+      const savedColors = JSON.parse(localStorage.getItem("colors")) || {};
+      if (!savedColors[date]) savedColors[date] = {};
+      savedColors[date][worker] = color;
+      localStorage.setItem("colors", JSON.stringify(savedColors));
+      cell.style.backgroundColor = color;
+    }
+
+    function saveToExcel() {
+      const table = document.getElementById("scheduleTable");
+      const rows = table.querySelectorAll("tr");
+      const data = [];
+      const headerRow = rows[0].querySelectorAll("th");
+      const headerData = [];
+      headerRow.forEach(header => {
+        headerData.push(header.textContent.trim());
+      });
+      data.push(headerData);
+      rows.forEach((row, rowIndex) => {
+        if (rowIndex === 0) return;
+        const rowData = [];
+        const cells = row.querySelectorAll("td");
+        cells.forEach(cell => {
+          let cellValue = cell.textContent.trim() || "";
+          const select = cell.querySelector("select");
+          if (select) {
+            cellValue = select.value;
+          }
+          if (cellValue === "") {
+            cellValue = "—";
+          }
+          rowData.push(cellValue);
+        });
+        data.push(rowData);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Schedule");
+      XLSX.writeFile(wb, "schedule.xlsx");
+    }
+
+    function goToPreviousWeek() {
+      const weekSelector = document.getElementById("weekSelector");
+      const currentWeek = weekSelector.value;
+      if (!currentWeek) return;
+      const [year, week] = currentWeek.split('-W');
+      let previousWeek = parseInt(week) - 1;
+      let previousYear = year;
+      if (previousWeek < 1) {
+        previousWeek = 52;
+        previousYear = parseInt(year) - 1;
+      }
+      const newWeek = `${previousYear}-W${String(previousWeek).padStart(2, '0')}`;
+      weekSelector.value = newWeek;
+      updateWeek();
+    }
+
+    function goToNextWeek() {
+      const weekSelector = document.getElementById("weekSelector");
+      const currentWeek = weekSelector.value;
+      if (!currentWeek) return;
+      const [year, week] = currentWeek.split('-W');
+      let nextWeek = parseInt(week) + 1;
+      let nextYear = year;
+      if (nextWeek > 52) {
+        nextWeek = 1;
+        nextYear = parseInt(year) + 1;
+      }
+      const newWeek = `${nextYear}-W${String(nextWeek).padStart(2, '0')}`;
+      weekSelector.value = newWeek;
+      updateWeek();
+    }
+
+    function saveTemplate() {
+      const selectedWeek = document.getElementById("weekSelector").value;
+      if (!selectedWeek) return alert("Выберите неделю перед сохранением шаблона");
+      const templateName = document.getElementById("templateNameInput").value.trim();
+      if (!templateName) return alert("Введите название шаблона");
+      const schedule = JSON.parse(localStorage.getItem("schedule")) || {};
+      const savedColors = JSON.parse(localStorage.getItem("colors")) || {};
+      const weekKey = `week-${selectedWeek}`;
+      const [year, week] = selectedWeek.split("-W");
+      const templateData = {};
+      for (let i = 0; i < 7; i++) {
+        let currentDate = new Date(year, 0, 1 + (week - 1) * 7 + i - 1);
+        let formattedDate = currentDate.toISOString().split("T")[0];
+        if (schedule[weekKey] && schedule[weekKey][formattedDate]) {
+          templateData[formattedDate] = {
+            data: schedule[weekKey][formattedDate],
+            colors: savedColors[formattedDate] || {}
+          };
+        } else {
+          const dayData = {};
+          workers.forEach(worker => dayData[worker] = "—");
+          templateData[formattedDate] = { data: dayData, colors: {} };
+        }
+      }
+      const templates = JSON.parse(localStorage.getItem("scheduleTemplates")) || {};
+      templates[templateName] = templateData;
+      localStorage.setItem("scheduleTemplates", JSON.stringify(templates));
+      alert(`Шаблон "${templateName}" сохранён!`);
+      updateTemplateSelector();
+    }
+
+    function updateTemplateSelector() {
+      const templateSelector = document.getElementById("templateSelector");
+      const templates = JSON.parse(localStorage.getItem("scheduleTemplates")) || {};
+      templateSelector.innerHTML = "";
+      for (let name in templates) {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        templateSelector.appendChild(option);
+      }
+    }
+
+    function applyTemplate() {
+      const selectedWeek = document.getElementById("weekSelector").value;
+      if (!selectedWeek) return alert("Выберите неделю перед применением шаблона");
+      const templateSelector = document.getElementById("templateSelector");
+      const templateName = templateSelector.value;
+      if (!templateName) return alert("Выберите шаблон");
+      const templates = JSON.parse(localStorage.getItem("scheduleTemplates")) || {};
+      const template = templates[templateName];
+      if (!template) return alert("Выбранный шаблон не найден");
+      const [year, week] = selectedWeek.split("-W");
+      const newWeekData = {};
+      const newColors = JSON.parse(localStorage.getItem("colors")) || {};
+      const sortedTemplateDates = Object.keys(template).sort();
+      for (let i = 0; i < 7; i++) {
+        let currentDate = new Date(year, 0, 1 + (week - 1) * 7 + i - 1);
+        let formattedDate = currentDate.toISOString().split("T")[0];
+        let dayTemplate = sortedTemplateDates[i] ? template[sortedTemplateDates[i]] : { data: {}, colors: {} };
+        newWeekData[formattedDate] = dayTemplate.data;
+        newColors[formattedDate] = dayTemplate.colors;
+      }
+      const schedule = JSON.parse(localStorage.getItem("schedule")) || {};
+      const weekKey = `week-${selectedWeek}`;
+      schedule[weekKey] = newWeekData;
+      localStorage.setItem("schedule", JSON.stringify(schedule));
+      localStorage.setItem("colors", JSON.stringify(newColors));
+      alert(`Шаблон "${templateName}" применён!`);
+      updateWeek();
+    }
+
+    function deleteTemplate() {
+      const templateSelector = document.getElementById("templateSelector");
+      const templateName = templateSelector.value;
+      if (!templateName) return alert("Выберите шаблон для удаления");
+      if (!confirm(`Вы уверены, что хотите удалить шаблон "${templateName}"?`)) return;
+      const templates = JSON.parse(localStorage.getItem("scheduleTemplates")) || {};
+      delete templates[templateName];
+      localStorage.setItem("scheduleTemplates", JSON.stringify(templates));
+      alert("Шаблон удалён.");
+      updateTemplateSelector();
+    }
+
+    function clearWeek() {
+      const weekSelector = document.getElementById("weekSelector");
+      const selectedWeek = weekSelector.value;
+      if (!selectedWeek) return alert("Выберите неделю для очистки");
+      if (!confirm("Вы уверены, что хотите очистить все поля недели?")) return;
+      const schedule = JSON.parse(localStorage.getItem("schedule")) || {};
+      const weekKey = `week-${selectedWeek}`;
+      if (schedule[weekKey]) {
+        delete schedule[weekKey];
+      }
+      localStorage.setItem("schedule", JSON.stringify(schedule));
+      const savedColors = JSON.parse(localStorage.getItem("colors")) || {};
+      const [year, week] = selectedWeek.split("-W");
+      for (let i = 0; i < 7; i++) {
+        let currentDate = new Date(year, 0, 1 + (week - 1) * 7 + i - 1);
+        let formattedDate = currentDate.toISOString().split("T")[0];
+        delete savedColors[formattedDate];
+      }
+      localStorage.setItem("colors", JSON.stringify(savedColors));
+      updateWeek();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initHeaders();
+      document.getElementById("saveTemplateButton").addEventListener("click", saveTemplate);
+      document.getElementById("applyTemplateButton").addEventListener("click", applyTemplate);
+      document.getElementById("deleteTemplateButton").addEventListener("click", deleteTemplate);
+      document.getElementById("clearWeekButton").addEventListener("click", clearWeek);
+      updateTemplateSelector();
+
+      const toggleBtn = document.getElementById("toggleSpoilerButton");
+      const spoiler = document.getElementById("spoilerContainer");
+      spoiler.classList.remove("open");
+      toggleBtn.addEventListener("click", function() {
+        if (spoiler.classList.contains("open")) {
+          spoiler.classList.remove("open");
+          toggleBtn.classList.remove("rotated");
+        } else {
+          spoiler.classList.add("open");
+          toggleBtn.classList.add("rotated");
+        }
+      });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      updateWeek();
+    });
+  </script>
+</body>
+</html>
