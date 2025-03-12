@@ -45,6 +45,20 @@
       transform: translateY(20px);
       animation: fadeInUp 0.5s forwards;
     }
+    /* До выбора недели фиксированная ширина */
+    .instruction-block.week-not-selected {
+      max-width: 500px;
+    }
+    /* После выбора недели контейнер подстраивается под контент */
+    .instruction-block.week-selected {
+      display: inline-block;
+      max-width: none;
+      width: auto;
+    }
+    .instruction-block.week-selected table {
+      width: auto;
+      display: inline-table;
+    }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -74,7 +88,6 @@
       border: 1px solid #ddd;
       transition: background-color 0.3s ease, transform 0.2s ease;
     }
-    /* Стили для второго столбца (дни недели) */
     td:nth-child(2),
     th:nth-child(2) {
       width: 60px;
@@ -100,7 +113,6 @@
       background-color: #f1f1f1;
       transition: background-color 0.3s ease;
     }
-    /* Стили для выделенных ячеек */
     td.selected {
       background-color: rgba(0, 123, 255, 0.3) !important;
       transition: background-color 0.3s ease;
@@ -114,7 +126,6 @@
       background-color: #fff;
       margin-top: 15px;
     }
-    /* Стили для блока с всегда видимыми элементами */
     .always-visible {
       display: flex;
       justify-content: space-between;
@@ -131,75 +142,67 @@
       opacity: 0;
     }
     #spoilerContainer.open {
-      max-height: 500px; /* Достаточно для всех элементов */
+      max-height: 500px;
       opacity: 1;
     }
-    /* Стили для кнопки-стрелки спойлера */
-    #toggleSpoilerButton {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 20px;
-      color: #4caf50;
-      transition: transform 0.3s ease;
-    }
-    #toggleSpoilerButton.rotated {
-      transform: rotate(180deg);
-    }
-    /* Стили для элементов управления в спойлере */
+    /* Новый стиль для элементов управления спойлером */
     #templateControls {
-      margin-top: 15px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      justify-items: center;
+      align-items: center;
+      margin-top: 10px;
+      width: 100%;
     }
     #templateControls .control-group {
-      margin-bottom: 10px;
+      width: 100%;
+      text-align: center;
     }
     #templateControls input[type="text"],
-    #templateControls select {
-      padding: 8px;
-      font-size: 16px;
-      border: 1px solid #ccc;
+    #templateControls select,
+    #templateControls button {
+      padding: 5px 10px;
+      font-size: 14px;
       border-radius: 4px;
-      background-color: #fff;
-      width: 100%;
+      width: 90%;
       box-sizing: border-box;
     }
-    #templateControls button {
-      padding: 10px 15px;
-      font-size: 16px;
-      border: none;
-      border-radius: 4px;
-      background-color: #4caf50;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
+    #workerControls, #deleteWorkerControls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
       width: 100%;
     }
-    #templateControls button:hover {
-      background-color: #45a049;
+    #workerControls input[type="text"],
+    #deleteWorkerControls select,
+    #workerControls button,
+    #deleteWorkerControls button {
+      padding: 5px 10px;
+      font-size: 14px;
+      border-radius: 4px;
     }
-    /* Новый блок управления столбцами внутри спойлера */
+    /* Блок управления столбцами остаётся без изменений */
     #columnControls {
       margin-top: 15px;
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       gap: 8px;
-      overflow-x: auto;
-      white-space: nowrap;
+      overflow-x: visible;
+      white-space: normal;
     }
-    /* Делаем кнопки управления столбцами маленькими */
-#columnControls button {
-  font-size: 11px;
-  padding: 2px 6px;
- width: 100px;
- height: 30px;
- position: relative;
-  background-color: #007bff; /* синий цвет */
-  color: white;
-  border-radius: 10;
- margin-top: -5px; /* поднимет кнопки немного вверх */
-}
-
-
+    #columnControls button {
+      font-size: 11px;
+      padding: 2px 6px;
+      width: 100px;
+      height: 30px;
+      position: relative;
+      background-color: #007bff;
+      color: white;
+      border-radius: 10;
+      margin-top: -5px;
+    }
     /* Кнопки навигации по неделям */
     .nav-button {
       position: absolute;
@@ -242,25 +245,20 @@
       .container { padding: 10px; }
       .instruction-block { max-width: 100%; }
     }
-
-/* Изначально столбцы не видны */
-.hidden-column {
-  opacity: 0;
-  visibility: hidden; /* Скрываем столбец */
-  transition: opacity 0.5s ease, visibility 0s linear 0.5s; /* Плавное скрытие */
-}
-
-/* Когда столбец видим, он становится полностью непрозрачным */
-.visible-column {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.5s ease, visibility 0s linear 0s; /* Плавное появление */
-}
-
-/* Чтобы столбцы могли изменять размеры плавно */
-th, td {
-  transition: all 0.5s ease;
-}
+    /* Изначально скрытые столбцы */
+    .hidden-column {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease, visibility 0s linear 0.5s;
+    }
+    .visible-column {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.5s ease, visibility 0s linear 0s;
+    }
+    th, td {
+      transition: all 0.5s ease;
+    }
   </style>
 </head>
 <body>
@@ -286,16 +284,18 @@ th, td {
         <div style="display: flex; gap: 10px; align-items: center;">
           <button onclick="saveToExcel()">Сохранить в Excel</button>
           <button id="applyButton" onclick="applyToSelected()">Применить ко всем выделенным</button>
+          <!-- Обновлённый селектор с отсортированными вариантами -->
           <select id="timeSelector">
-            <option value="12:00 - 21:00">12:00 - 21:00</option>
-            <option value="9:30 - 21:30">9:30 - 21:30</option>
-            <option value="16:00 - 3:30">16:00 - 3:30</option>
             <option value="9:30 - 18:30">9:30 - 18:30</option>
-            <option value="13:00 - 01:00">13:00 - 01:00</option>
-            <option value="18:30 - 03:30">18:30 - 03:30</option>
+            <option value="9:30 - 21:30">9:30 - 21:30</option>
             <option value="9:30 - 03:30">9:30 - 03:30</option>
-            <option value="Особый">Особый</option>
+            <option value="12:00 - 21:00">12:00 - 21:00</option>
+            <option value="12:00 - 00:00">12:00 - 00:00</option>
+            <option value="13:00 - 01:00">13:00 - 01:00</option>
+            <option value="16:00 - 03:30">16:00 - 03:30</option>
+            <option value="18:30 - 03:30">18:30 - 03:30</option>
             <option value="Выходной">Выходной</option>
+            <option value="Особый">Особый</option>
             <option value="—">—</option>
           </select>
         </div>
@@ -324,6 +324,14 @@ th, td {
           <div class="control-group">
             <button id="clearWeekButton">Очистить поля</button>
           </div>
+          <div id="workerControls" style="margin-top: 10px;">
+            <input type="text" id="newWorkerName" placeholder="Имя нового сотрудника">
+            <button onclick="addWorker()">Добавить сотрудника</button>
+          </div>
+          <div id="deleteWorkerControls" style="margin-top: 10px;">
+            <select id="deleteWorkerSelect"></select>
+            <button onclick="deleteSelectedWorker()">Удалить сотрудника</button>
+          </div>
           <!-- Блок управления столбцами -->
           <div id="columnControls"></div>
         </div>
@@ -334,11 +342,49 @@ th, td {
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   <script>
-    // Массив с именами сотрудников
-    let workers = ["Виолетта", "Саша", "Даша", "Толик", "Кирилл", "Лиза", "Ирина", "Виктория"];
-    // Массив для хранения состояния скрытых столбцов (индекс соответствует сотруднику)
+    // Загружаем имена сотрудников из localStorage или используем значения по умолчанию
+    let workers = JSON.parse(localStorage.getItem("workers")) || ["Виолетта", "Саша", "Даша", "Толик", "Кирилл", "Лиза", "Ирина", "Виктория"];
+    // Массив для хранения состояния скрытых столбцов – его длина соответствует количеству сотрудников
     let hiddenColumns = new Array(workers.length).fill(false);
-    let selectedCells = new Set(); // Храним выделенные ячейки
+    // Множество для хранения выделенных ячеек
+    let selectedCells = new Set();
+
+    // Функция обновления имени сотрудника с сохранением в localStorage
+    function updateWorkerName(index, newName) {
+      workers[index] = newName.trim();
+      localStorage.setItem("workers", JSON.stringify(workers));
+      updateDeleteWorkerSelector();
+    }
+
+    // Функция добавления нового сотрудника
+    function addWorker() {
+      const input = document.getElementById("newWorkerName");
+      const name = input.value.trim();
+      if (!name) {
+        alert("Введите имя сотрудника");
+        return;
+      }
+      workers.push(name);
+      // Обновляем массив состояния скрытых столбцов
+      hiddenColumns.push(false);
+      localStorage.setItem("workers", JSON.stringify(workers));
+      input.value = "";
+      initHeaders();
+      initColumnControls();
+      updateWeek();
+      updateDeleteWorkerSelector();
+    }
+
+    // Функция удаления сотрудника по индексу
+    function deleteWorker(index) {
+      if (!confirm(`Удалить сотрудника "${workers[index]}"?`)) return;
+      workers.splice(index, 1);
+      hiddenColumns.splice(index, 1);
+      localStorage.setItem("workers", JSON.stringify(workers));
+      initHeaders();
+      initColumnControls();
+      updateWeek();
+    }
 
     /* =========================
        Функция формирования заголовков таблицы (без кнопок скрытия)
@@ -377,14 +423,42 @@ th, td {
       title.textContent = "Управление столбцами:";
       controlsDiv.appendChild(title);
       workers.forEach((worker, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = hiddenColumns[index] ? `Показать ${worker}` : `Скрыть ${worker}`;
-        btn.addEventListener("click", () => {
+        // Кнопка для скрытия/показа столбца
+        const btnToggle = document.createElement("button");
+        btnToggle.textContent = hiddenColumns[index] ? `Показать ${worker}` : `Скрыть ${worker}`;
+        btnToggle.addEventListener("click", () => {
           toggleColumn(index);
-          btn.textContent = hiddenColumns[index] ? `Показать ${worker}` : `Скрыть ${worker}`;
+          btnToggle.textContent = hiddenColumns[index] ? `Показать ${worker}` : `Скрыть ${worker}`;
         });
-        controlsDiv.appendChild(btn);
+        controlsDiv.appendChild(btnToggle);
       });
+    }
+
+    // Функция для обновления селектора удаления сотрудника
+    function updateDeleteWorkerSelector() {
+      const select = document.getElementById("deleteWorkerSelect");
+      select.innerHTML = "";
+      workers.forEach((worker, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = worker;
+        select.appendChild(option);
+      });
+    }
+
+    // Функция удаления сотрудника по селектору
+    function deleteSelectedWorker() {
+      const select = document.getElementById("deleteWorkerSelect");
+      const index = parseInt(select.value);
+      if (isNaN(index)) return;
+      if (!confirm(`Удалить сотрудника "${workers[index]}"?`)) return;
+      workers.splice(index, 1);
+      hiddenColumns.splice(index, 1);
+      localStorage.setItem("workers", JSON.stringify(workers));
+      initHeaders();
+      initColumnControls();
+      updateWeek();
+      updateDeleteWorkerSelector();
     }
 
     // Функция скрытия/показа столбца для сотрудника по индексу
@@ -405,18 +479,20 @@ th, td {
       });
     }
 
-
-    // Обновление имени сотрудника в массиве и заголовке
-    function updateWorkerName(index, newName) {
-      workers[index] = newName.trim();
-    }
-
     /* =========================
-       Функции для работы с расписанием
+       Функция обновления расписания
        ========================= */
     function updateWeek() {
-      const selectedWeek = document.getElementById("weekSelector").value;
-      if (!selectedWeek) return;
+      const weekSelector = document.getElementById("weekSelector");
+      const selectedWeek = weekSelector.value;
+      const instructionBlock = document.querySelector(".instruction-block");
+      if (!selectedWeek) {
+        instructionBlock.classList.add("week-not-selected");
+        document.getElementById("scheduleTable").style.display = "none";
+        return;
+      } else {
+        instructionBlock.classList.remove("week-not-selected");
+      }
       document.getElementById("scheduleTable").style.display = "block";
       
       const table = document.getElementById("scheduleTable");
@@ -442,13 +518,14 @@ th, td {
             let savedColor = savedColors[formattedDate]?.[worker] || "";
             row.innerHTML += `<td style="background-color: ${savedColor}" onclick="toggleSelect(this)">
                                 <select onchange="updateSchedule('${weekKey}', '${formattedDate}', '${worker}', this.value, this)">
-                                  <option value="12:00 - 21:00" ${savedValue === "12:00 - 21:00" ? "selected" : ""}>12:00 - 21:00</option>
-                                  <option value="9:30 - 21:30" ${savedValue === "9:00 - 21:30" ? "selected" : ""}>9:30 - 21:30</option>
-                                  <option value="12:00 - 00:00" ${savedValue === "12:00 - 00:00" ? "selected" : ""}>12:00 - 00:00</option>
                                   <option value="9:30 - 18:30" ${savedValue === "9:30 - 18:30" ? "selected" : ""}>9:30 - 18:30</option>
-                                  <option value="18:30 - 03:30" ${savedValue === "18:30 - 03:30" ? "selected" : ""}>18:30 - 03:30</option>
+                                  <option value="9:30 - 21:30" ${savedValue === "9:30 - 21:30" ? "selected" : ""}>9:30 - 21:30</option>
+                                  <option value="9:30 - 03:30" ${savedValue === "9:30 - 03:30" ? "selected" : ""}>9:30 - 03:30</option>
+                                  <option value="12:00 - 21:00" ${savedValue === "12:00 - 21:00" ? "selected" : ""}>12:00 - 21:00</option>
+                                  <option value="12:00 - 00:00" ${savedValue === "12:00 - 00:00" ? "selected" : ""}>12:00 - 00:00</option>
+                                  <option value="13:00 - 01:00" ${savedValue === "13:00 - 01:00" ? "selected" : ""}>13:00 - 01:00</option>
                                   <option value="16:00 - 03:30" ${savedValue === "16:00 - 03:30" ? "selected" : ""}>16:00 - 03:30</option>
-                                  <option value="09:30 - 3:30" ${savedValue === "09:30 - 23:30" ? "selected" : ""}>09:30 - 3:30</option>
+                                  <option value="18:30 - 03:30" ${savedValue === "18:30 - 03:30" ? "selected" : ""}>18:30 - 03:30</option>
                                   <option value="Выходной" ${savedValue === "Выходной" ? "selected" : ""}>Выходной</option>
                                   <option value="Особый" ${savedValue === "Особый" ? "selected" : ""}>Особый</option>
                                   <option value="—" ${savedValue === "—" ? "selected" : ""}>—</option>
@@ -485,6 +562,7 @@ th, td {
       selectedCells.clear();
     }
 
+    // Обновлённая функция для обновления расписания с привязкой цвета по рабочему времени
     function updateSchedule(weekKey, date, worker, value, selectElement) {
       const schedule = JSON.parse(localStorage.getItem("schedule")) || {};
       if (!schedule[weekKey]) schedule[weekKey] = {};
@@ -495,22 +573,20 @@ th, td {
       let color = "";
       if (value === "Выходной") {
         color = "rgba(255, 0, 0, 0.3)";
-      } else if (value === "12:00 - 21:00") {
-        color = "#e6f4ea";
-      } else if (value === "9:30 - 21:30") {
-        color = "#e6f4ea";
-      } else if (value === "16:00 - 3:30") {
-        color = "#e6f4ea";
-      } else if (value === "12:00 - 21:00") {
-        color = "#e6f4ea";
-      } else if (value === "9:30 - 18:30") {
-        color = "#c3e6cb";
-      } else if (value === "13:00 - 01:00") {
-        color = "#a2d9f7";
-      } else if (value === "18:30 - 03:30") {
-        color = "#6c8ebf";
-      } else if (value === "—") {
-        color = "rgba(255, 255, 255, 0.3)";
+      } else if (value === "Особый" || value === "—") {
+        color = value === "—" ? "rgba(255, 255, 255, 0.3)" : "";
+      } else {
+        const workTimeColors = {
+          "9:30 - 18:30": "#d4edda",
+          "9:30 - 21:30": "#cdeac0",
+          "9:30 - 03:30": "#c5e7b0",
+          "12:00 - 21:00": "#d1f0e0",
+          "12:00 - 00:00": "#b2f7ef",
+          "13:00 - 01:00": "#cfe2f3",
+          "16:00 - 03:30": "#e0bbe4",
+          "18:30 - 03:30": "#f3e5f5"
+        };
+        color = workTimeColors[value] || "";
       }
       const savedColors = JSON.parse(localStorage.getItem("colors")) || {};
       if (!savedColors[date]) savedColors[date] = {};
@@ -697,6 +773,7 @@ th, td {
       document.getElementById("deleteTemplateButton").addEventListener("click", deleteTemplate);
       document.getElementById("clearWeekButton").addEventListener("click", clearWeek);
       updateTemplateSelector();
+      updateDeleteWorkerSelector();
 
       const toggleBtn = document.getElementById("toggleSpoilerButton");
       const spoiler = document.getElementById("spoilerContainer");
