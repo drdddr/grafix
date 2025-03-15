@@ -17,7 +17,7 @@
 
     /* Стили для страницы */
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
       background-color: #f4f4f9;
@@ -134,47 +134,27 @@
       margin-top: 10px;
       flex-wrap: wrap;
     }
-    /* Стили для спойлера */
-    #spoilerContainer {
-      overflow: hidden;
-      transition: max-height 0.3s ease, opacity 0.3s ease;
-      max-height: 0;
-      opacity: 0;
+    /* Стили для групп настроек внутри модального окна */
+    fieldset.group {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
     }
-    #spoilerContainer.open {
-      max-height: 500px;
-      opacity: 1;
+    fieldset.group legend {
+      font-weight: bold;
+      padding: 0 5px;
     }
-    /* Новый стиль для элементов управления спойлером */
-    #templateControls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      justify-items: center;
-      align-items: center;
-      margin-top: 10px;
-      width: 100%;
-    }
-    #templateControls .control-group {
+    #templateControls .control-group,
+    #workerControls,
+    #deleteWorkerControls,
+    #columnControls {
       width: 100%;
       text-align: center;
     }
     #templateControls input[type="text"],
     #templateControls select,
-    #templateControls button {
-      padding: 5px 10px;
-      font-size: 14px;
-      border-radius: 4px;
-      width: 90%;
-      box-sizing: border-box;
-    }
-    #workerControls, #deleteWorkerControls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-    }
+    #templateControls button,
     #workerControls input[type="text"],
     #deleteWorkerControls select,
     #workerControls button,
@@ -182,10 +162,11 @@
       padding: 5px 10px;
       font-size: 14px;
       border-radius: 4px;
+      width: 90%;
+      box-sizing: border-box;
     }
     /* Блок управления столбцами остаётся без изменений */
     #columnControls {
-      margin-top: 15px;
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -200,7 +181,7 @@
       position: relative;
       background-color: #007bff;
       color: white;
-      border-radius: 10;
+      border-radius: 10px;
       margin-top: -5px;
     }
     /* Кнопки навигации по неделям */
@@ -245,20 +226,42 @@
       .container { padding: 10px; }
       .instruction-block { max-width: 100%; }
     }
-    /* Изначально скрытые столбцы */
-    .hidden-column {
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.5s ease, visibility 0s linear 0.5s;
+    /* Стили модального окна */
+    .modal {
+      display: none; /* Скрыто по умолчанию */
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
     }
-    .visible-column {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.5s ease, visibility 0s linear 0s;
+    /* Изменён стиль, чтобы окно открывалось в центре экрана (на уровне окна расписания) */
+    .modal-content {
+      background-color: #fff;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 5px;
     }
-    th, td {
-      transition: all 0.5s ease;
+    .close {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
     }
+    .close:hover { color: black; }
+    th, td { transition: all 0.5s ease; }
   </style>
 </head>
 <body>
@@ -284,7 +287,6 @@
         <div style="display: flex; gap: 10px; align-items: center;">
           <button onclick="saveToExcel()">Сохранить в Excel</button>
           <button id="applyButton" onclick="applyToSelected()">Применить ко всем выделенным</button>
-          <!-- Обновлённый селектор с отсортированными вариантами -->
           <select id="timeSelector">
             <option value="9:30 - 18:30">9:30 - 18:30</option>
             <option value="9:30 - 21:30">9:30 - 21:30</option>
@@ -298,14 +300,22 @@
             <option value="Особый">Особый</option>
             <option value="—">—</option>
           </select>
+          <!-- Кнопка открытия модального окна -->
+          <button id="openSettingsButton">Настройки</button>
         </div>
-        <!-- Кнопка-стрелка для спойлера -->
-        <button id="toggleSpoilerButton">&#9660;</button>
       </div>
-      
-      <!-- Спрятанный спойлер с дополнительными элементами (включая управление столбцами) -->
-      <div id="spoilerContainer">
-        <div id="templateControls">
+    </div>
+    <button class="nav-button next-week" onclick="goToNextWeek()">&#10095;</button>
+  </div>
+  
+  <!-- Модальное окно с настройками -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="templateControls">
+        <!-- Группа 1: Шаблоны расписания -->
+        <fieldset class="group templates-group">
+          <legend>Шаблоны расписания</legend>
           <div class="control-group">
             <input type="text" id="templateNameInput" placeholder="Введите название шаблона">
           </div>
@@ -324,6 +334,10 @@
           <div class="control-group">
             <button id="clearWeekButton">Очистить поля</button>
           </div>
+        </fieldset>
+        <!-- Группа 2: Управление сотрудниками -->
+        <fieldset class="group workers-group">
+          <legend>Управление сотрудниками</legend>
           <div id="workerControls" style="margin-top: 10px;">
             <input type="text" id="newWorkerName" placeholder="Имя нового сотрудника">
             <button onclick="addWorker()">Добавить сотрудника</button>
@@ -332,12 +346,14 @@
             <select id="deleteWorkerSelect"></select>
             <button onclick="deleteSelectedWorker()">Удалить сотрудника</button>
           </div>
-          <!-- Блок управления столбцами -->
+        </fieldset>
+        <!-- Группа 3: Управление столбцами -->
+        <fieldset class="group columns-group">
+          <legend>Управление столбцами</legend>
           <div id="columnControls"></div>
-        </div>
+        </fieldset>
       </div>
     </div>
-    <button class="nav-button next-week" onclick="goToNextWeek()">&#10095;</button>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
@@ -365,7 +381,6 @@
         return;
       }
       workers.push(name);
-      // Обновляем массив состояния скрытых столбцов
       hiddenColumns.push(false);
       localStorage.setItem("workers", JSON.stringify(workers));
       input.value = "";
@@ -412,18 +427,12 @@
     }
 
     /* =========================
-       Функция формирования блока управления столбцами (в спойлере)
+       Функция формирования блока управления столбцами (в модальном окне)
        ========================= */
     function initColumnControls() {
       const controlsDiv = document.getElementById("columnControls");
       controlsDiv.innerHTML = "";
-      const title = document.createElement("div");
-      title.style.fontWeight = "bold";
-      title.style.marginBottom = "8px";
-      title.textContent = "Управление столбцами:";
-      controlsDiv.appendChild(title);
       workers.forEach((worker, index) => {
-        // Кнопка для скрытия/показа столбца
         const btnToggle = document.createElement("button");
         btnToggle.textContent = hiddenColumns[index] ? `Показать ${worker}` : `Скрыть ${worker}`;
         btnToggle.addEventListener("click", () => {
@@ -766,6 +775,19 @@
       updateWeek();
     }
 
+    // Обработчики для модального окна
+    document.getElementById("openSettingsButton").addEventListener("click", function() {
+      document.getElementById("settingsModal").style.display = "block";
+    });
+    document.getElementsByClassName("close")[0].addEventListener("click", function() {
+      document.getElementById("settingsModal").style.display = "none";
+    });
+    window.addEventListener("click", function(event) {
+      if (event.target == document.getElementById("settingsModal")) {
+        document.getElementById("settingsModal").style.display = "none";
+      }
+    });
+
     document.addEventListener("DOMContentLoaded", () => {
       initHeaders();
       document.getElementById("saveTemplateButton").addEventListener("click", saveTemplate);
@@ -774,19 +796,6 @@
       document.getElementById("clearWeekButton").addEventListener("click", clearWeek);
       updateTemplateSelector();
       updateDeleteWorkerSelector();
-
-      const toggleBtn = document.getElementById("toggleSpoilerButton");
-      const spoiler = document.getElementById("spoilerContainer");
-      spoiler.classList.remove("open");
-      toggleBtn.addEventListener("click", function() {
-        if (spoiler.classList.contains("open")) {
-          spoiler.classList.remove("open");
-          toggleBtn.classList.remove("rotated");
-        } else {
-          spoiler.classList.add("open");
-          toggleBtn.classList.add("rotated");
-        }
-      });
     });
 
     document.addEventListener("DOMContentLoaded", () => {
